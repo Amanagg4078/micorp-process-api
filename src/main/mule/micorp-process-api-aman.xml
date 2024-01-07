@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:json-logger="http://www.mulesoft.org/schema/mule/json-logger" xmlns:module-error-handler-plugin="http://www.mulesoft.org/schema/mule/module-error-handler-plugin" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/module-error-handler-plugin http://www.mulesoft.org/schema/mule/module-error-handler-plugin/current/mule-module-error-handler-plugin.xsd
+http://www.mulesoft.org/schema/mule/json-logger http://www.mulesoft.org/schema/mule/json-logger/current/mule-json-logger.xsd">
+	<flow name="micorp-process-api-aman-main">
+        <http:listener config-ref="micorp-process-api-aman-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <ee:transform doc:name="Set CorrelationID" doc:id="17fe82dc-f038-495d-afce-2fe9a31b978f" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="correlationID" ><![CDATA[attributes.headers."x-correlation-id" default uuid()]]></ee:set-variable>
+				<ee:set-variable variableName="clientID" ><![CDATA[attributes.headers.'clientID']]></ee:set-variable>
+				<ee:set-variable variableName="clientSecret" ><![CDATA[attributes.headers.'clientSecret']]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<apikit:router config-ref="micorp-process-api-aman-config" doc:id="fa8688e4-b199-4b2a-a988-750e87e49eba"/>
+    </flow>
+    <flow name="get:\healthCheck:micorp-process-api-aman-config" doc:id="5d7ec5d8-a26a-4bae-a73a-881e893e27a0">
+		<json-logger:logger doc:name="Logger" doc:id="4cf4b16e-06c6-49af-8a1f-aa963c19bade" config-ref="JSON_Logger_Config" message='#[flow.name ++ " started"]'/>
+		<flow-ref doc:name="Flow Reference" doc:id="d9a4a516-66a8-45f1-a7e3-abe5100c086e" name="health-check" />
+		<json-logger:logger doc:name="Logger" doc:id="ae386388-1cb7-472e-babb-722cd93f2959" config-ref="JSON_Logger_Config" message='#[flow.name ++ " ended"]'/>
+    </flow>
+    <flow name="post:\order:application\json:micorp-process-api-aman-config" doc:id="4b76ca64-c659-4a1a-b5e3-780c85ed204d">
+                <json-logger:logger doc:name="Logger" doc:id="69d6d8c0-c562-42e6-bf4f-0680edc5ee0b" message='#[flow.name ++ " started"]' config-ref="JSON_Logger_Config"/>
+		<flow-ref doc:name="Flow Reference" doc:id="e4269a5e-f1a2-4ed9-bc34-54a18aba60cc" name="post-micorp-papi" />
+		<json-logger:logger doc:name="Logger" doc:id="3f9f9687-726c-42f0-9214-43ccb729ceeb" message='#[flow.name ++ " ended"]' config-ref="JSON_Logger_Config"/>
+
+    </flow>
+</mule>

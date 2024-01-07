@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:json-logger="http://www.mulesoft.org/schema/mule/json-logger"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/json-logger http://www.mulesoft.org/schema/mule/json-logger/current/mule-json-logger.xsd">
+	<sub-flow name="post-micorp-papi" doc:id="9c41f8c9-7c75-4ce7-811e-0f7c1cf80265" >
+		<json-logger:logger doc:name="Logger" doc:id="21c82243-0974-47ec-a7ce-5862f9aed811" config-ref="JSON_Logger_Config" message='#[flow.name ++ " started"]'/>
+		<ee:transform doc:name="Transform Message" doc:id="773a96e6-0183-4566-86e8-e283548ad3ce" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="items" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.items]]></ee:set-variable>
+				<ee:set-variable variableName="order" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.orderData]]></ee:set-variable>
+				<ee:set-variable variableName="customer" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.customer]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<http:request method="GET" doc:name="Customer check" doc:id="4a648b44-48f4-4402-8880-773380c0b9e1" config-ref="httpRequest" path="${request.getCustomer}" responseTimeout="2147483647">
+			<http:headers ><![CDATA[#[{
+	clientID : Mule::p('clientID') ,
+	"x-correlation-id": vars.correlationID,
+	clientSecret: Mule::p('clientSecret')
+}]]]></http:headers>
+			<http:uri-params ><![CDATA[#[{
+	email : vars.customer.email
+}]]]></http:uri-params>
+		</http:request>
+		<choice doc:name="Choice" doc:id="dc93158c-bcb0-489e-bfd5-5a1296ecb47a" >
+			<when expression="#[isEmpty(payload)]">
+				<http:request method="POST" doc:name="Create Customer" doc:id="7ff6f4e1-bc91-4f4b-80c5-2bdd50c900c8" config-ref="httpRequest" path="${request.postCustomer}" responseTimeout="2147483647">
+					<http:body ><![CDATA[#[output json ---
+vars.customer]]]></http:body>
+					<http:headers ><![CDATA[#[{
+	clientID : Mule::p('clientID') ,
+	"x-correlation-id": vars.correlationID,
+	clientSecret: Mule::p('clientSecret')
+}]]]></http:headers>
+				</http:request>
+				<set-variable value="#[payload.items[0].payload.id]" doc:name="get customer id" doc:id="908f52c6-2405-4c62-aa27-4e87da2be8b0" variableName="customerID"/>
+			</when>
+			<otherwise >
+				<set-variable value="#[payload[0].Id]" doc:name="get customer id" doc:id="94736760-3c4a-4c8d-b9c9-f8b1f5adf695" variableName="customerID"/>
+			</otherwise>
+		</choice>
+		<http:request method="POST" doc:name="Create Order" doc:id="4dc765fd-2fe0-4c94-903e-50554610628b" config-ref="httpRequest" path="${request.postOrder}" responseTimeout="2147483647">
+			<http:body ><![CDATA[#[output json ---
+vars.order ++ {"customerID": vars.customerID}]]]></http:body>
+			<http:headers ><![CDATA[#[{
+	clientID : Mule::p('clientID') ,
+	"x-correlation-id": vars.correlationID,
+	clientSecret: Mule::p('clientSecret')
+}]]]></http:headers>
+		</http:request>
+		<set-variable value="#[payload.items[0].id]" doc:name="Set Variable" doc:id="18b32a81-0c71-4294-a822-1cc13981b522" variableName="orderID"/>
+		<http:request method="POST" doc:name="Create items" doc:id="630b8e57-7033-4438-98fd-a7d2eb6872ad" responseTimeout="2147483647" config-ref="httpRequest" path="${request.postItems}">
+			<http:body ><![CDATA[#[output json ---
+vars.items map ((item, index) -> item ++ {"orderID": vars.orderID} )]]]></http:body>
+			<http:headers ><![CDATA[#[{
+	clientID : Mule::p('clientID') ,
+	"x-correlation-id": vars.correlationID,
+	clientSecret: Mule::p('clientSecret')
+}]]]></http:headers>
+		</http:request>
+				<ee:transform doc:name="Transform Message" doc:id="eef009b9-845e-496f-9a5f-127d45f815e6">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  status: 201,
+  message: "Success",
+ "correlationID": vars.correlationID
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<json-logger:logger doc:name="Logger" doc:id="e3ae3748-bb17-47c5-82b1-b0f3db128fe8" config-ref="JSON_Logger_Config" message='#[flow.name ++ " ended"]'/>
+	</sub-flow>
+</mule>

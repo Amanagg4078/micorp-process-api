@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="   http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd   http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd   http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="global-error-handler-new-test-suite.xml"/>
+	<munit:test description="Test" doc:id="ad605d57-943e-4565-99ce-bce5958c169e" name="new-test-suite-micorp-process-api-aman-mainTest">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="4023907a-e96e-461f-b7e5-36252b1fb245" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="micorp-process-api-aman-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:BAD_REQUEST" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<flow-ref doc:id="6646271c-2e8e-4310-b746-f8ba4534ac5d" doc:name="Flow-ref to micorp-process-api-aman-main" name="micorp-process-api-aman-main"/>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-equals doc:id="95d793d5-9e6e-48fe-89af-700944e8383a" doc:name="Assert equals" actual="#[vars.httpStatus]" expected="#[400]"/>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>
