@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="micorp-process-api-aman-suite.xml" />
+	<munit:test name="micorp-process-api-aman-main-test" doc:id="15423990-b80d-4d57-9d8b-e9005e8ae29c" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock APIkit Router" doc:id="7d7100e9-8041-48a4-9b93-2423c4075c6f" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="fa8688e4-b199-4b2a-a988-750e87e49eba" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json  --- readUrl('classpath://micorpprocessapiamanmaintest\mock_payload.dwl')]" mediaType="application/json " encoding="UTF-8" />
+					<munit-tools:attributes value="#[readUrl('classpath://micorpprocessapiamanmaintest\mock_attributes.dwl')]" />
+					<munit-tools:variables >
+						<munit-tools:variable key="clientID" value="#[output application/java --- readUrl('classpath://micorpprocessapiamanmaintest\mock_variable_.dwl')]" mediaType="application/java" encoding="UTF-8" />
+						<munit-tools:variable key="outboundHeaders" value="#[readUrl('classpath://micorpprocessapiamanmaintest\mock_variable_1.dwl')]" />
+						<munit-tools:variable key="httpStatus" value="#[readUrl('classpath://micorpprocessapiamanmaintest\mock_variable_2.dwl')]" />
+						<munit-tools:variable key="correlationID" value="#[output application/java --- readUrl('classpath://micorpprocessapiamanmaintest\mock_variable_3.dwl')]" mediaType="application/java" encoding="UTF-8" />
+						<munit-tools:variable key="clientSecret" value="#[output application/java --- readUrl('classpath://micorpprocessapiamanmaintest\mock_variable_4.dwl')]" mediaType="application/java" encoding="UTF-8" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="a3525bba-f001-4709-9354-48f9fa989cad" >
+				<munit:payload value="#[readUrl('classpath://micorpprocessapiamanmaintest\set-event_payload.dwl')]" encoding="UTF-8" />
+				<munit:attributes value="#[readUrl('classpath://micorpprocessapiamanmaintest\set-event_attributes.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to micorp-process-api-aman-main" doc:id="38a096ce-234c-4744-8504-63ad34252fa4" name="micorp-process-api-aman-main"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="6a45227d-8b2d-4539-937f-113678dedfd3" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import micorpprocessapiamanmaintest::assert_expression_payload
+---
+assert_expression_payload::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

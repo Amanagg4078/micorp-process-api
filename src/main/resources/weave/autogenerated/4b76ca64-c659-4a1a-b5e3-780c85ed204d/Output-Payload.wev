@@ -1,0 +1,8 @@
+%dw 2.0
+
+type auto_4b76ca64_c659_4a1a_b5e3_780c85ed204d_Output_Payload = {
+  message: String, 
+  status: Number, 
+  _?: Any
+}
+

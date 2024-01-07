@@ -1,0 +1,11 @@
+
+request:
+  host: "micorp-sys-api-aman.us-e1.cloudhub.io"
+  port: "80"
+  basepath: "/micorp"
+  getCustomer: "/customer/{email}"
+  postCustomer: "/customer"
+  postOrder: "/order"
+  postItems: "/items"
+  
+  
